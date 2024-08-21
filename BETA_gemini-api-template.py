@@ -10,10 +10,10 @@ import google.generativeai as genai
 
 # User-defined constants
 GEMINI_MODEL = "gemini-1.5-pro"
-MAX_TOKENS = 512
+MAX_TOKENS = 8000
 PROMPT_INDEX_COLUMN = 'PROMPT_ID'  # Name of the column containing prompt indices
 PROMPT_COLUMN = 'PROMPT'  # Name of the column containing the actual prompts
-MAX_DELAY = 5  # Maximum delay between API calls in seconds
+MAX_DELAY = 12  # Maximum delay between API calls in seconds
 
 # Additional columns to include in results
 ADDITIONAL_COLUMNS = ['verse']
