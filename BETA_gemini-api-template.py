@@ -16,7 +16,7 @@ PROMPT_COLUMN = 'PROMPT'  # Name of the column containing the actual prompts
 MAX_DELAY = 12  # Maximum delay between API calls in seconds
 
 # Additional columns to include in results
-ADDITIONAL_COLUMNS = ['verse']
+ADDITIONAL_COLUMNS = ['TUTORIAL_PATH']
 
 # Time-stamped output directory
 TIME_STAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -74,7 +74,7 @@ def generate_response(model, prompt_text, prompt_id):
     """Generate a response using Gemini API based on user input."""
     try:
         response = model.generate_content(prompt_text)
-        prefix = str(prompt_id).zfill(4)
+        prefix = str(prompt_id).zfill(2)
         result_content = response.text
         result_file_name = f"{prefix}_result.txt"
         with open(os.path.join(DIR_RESULT, result_file_name), "w", encoding="utf-8") as f:
