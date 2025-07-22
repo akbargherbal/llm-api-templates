@@ -14,11 +14,11 @@ MAX_TOKENS = 65_000
 PROMPT_INDEX_COLUMN = "PROMPT_ID"  # Name of the column containing prompt indices
 PROMPT_COLUMN = "PROMPT"  # Name of the column containing the actual prompts
 MAX_DELAY = 30  # Maximum delay between API calls in seconds
-JSON_OBJECT = True  # Enable JSON output mode
+JSON_OBJECT = False  # Enable JSON output mode
 TEMPERATURE = 0.2 if JSON_OBJECT else 1.0  # Adjust temperature based on JSON mode
 
 # Additional columns to include in results
-ADDITIONAL_COLUMNS = "".split()
+ADDITIONAL_COLUMNS = "worksheet_name	worksheet_purpose	PROMPT".split()
 
 # Time-stamped output directory
 TIME_STAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
