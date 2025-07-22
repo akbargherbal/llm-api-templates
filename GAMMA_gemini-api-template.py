@@ -14,30 +14,11 @@ MAX_TOKENS = 65_000
 PROMPT_INDEX_COLUMN = "PROMPT_ID"  # Name of the column containing prompt indices
 PROMPT_COLUMN = "PROMPT"  # Name of the column containing the actual prompts
 MAX_DELAY = 30  # Maximum delay between API calls in seconds
-JSON_OBJECT = True
-TEMPERATURE = 0.2
+JSON_OBJECT = True  # Enable JSON output mode
+TEMPERATURE = 0.2 if JSON_OBJECT else 1.0  # Adjust temperature based on JSON mode
 
 # Additional columns to include in results
-ADDITIONAL_COLUMNS = [
-    "CODEBASE",
-    "COURSEWARE_DESCRIPTION",
-    "FAILURE_RATE",
-    "PROMPT",
-    "PYTEST_LOG",
-    "PYTEST_LOG_PATH",
-    "artifacts",
-    "dependencies",
-    "duration",
-    "end_time",
-    "errors",
-    "project_path",
-    "return_code",
-    "start_time",
-    "status",
-    "test_summary",
-    "timestamp",
-]
-
+ADDITIONAL_COLUMNS = "".split()
 
 # Time-stamped output directory
 TIME_STAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -61,11 +42,17 @@ logging.basicConfig(
 
 def setup_gemini_api():
     """Set up the Gemini API key and model."""
-    logging.info(
-        "Google API key not found in environment variables. Please enter it now."
-    )
-    print("Google API key not found in environment variables. Please enter it now.")
-    api_key = input("Paste your Google API key: ").strip()
+    api_key = os.getenv("GEMINI_API_KEY")
+
+    if api_key:
+        print("Google API key found in environment variables.")
+        logging.info("Google API key found in environment variables.")
+    else:
+        print("Google API key not found in environment variables. Please enter it now.")
+        logging.info(
+            "Google API key not found in environment variables. Please enter it now."
+        )
+        api_key = input("Paste your Google API key: ").strip()
 
     genai.configure(api_key=api_key)
 
@@ -76,12 +63,11 @@ def setup_gemini_api():
         "max_output_tokens": MAX_TOKENS,
     }
 
-    # If JSON_OBJECT is True, configure the model for JSON output.
+    # If JSON_OBJECT is True, configure the model for JSON output
     if JSON_OBJECT:
         generation_config["response_mime_type"] = "application/json"
         logging.info("JSON output mode enabled. The model will return JSON objects.")
         print("JSON output mode enabled. The model will return JSON objects.")
-    # --- MODIFICATION END ---
 
     safety_settings = [
         {"category": category, "threshold": "BLOCK_NONE"}
