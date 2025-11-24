@@ -8,17 +8,23 @@ from pathlib import Path
 import pandas as pd
 import google.generativeai as genai
 
+
+with open("./SYSTEM_PROMPT.md", encoding="utf-8") as f:
+    system_prompt = f.read()
+
+
 # User-defined constants
 GEMINI_MODEL = "gemini-2.5-pro"
-MAX_TOKENS = 65_000
+MAX_TOKENS = 60_000
 PROMPT_INDEX_COLUMN = "PROMPT_ID"  # Name of the column containing prompt indices
 PROMPT_COLUMN = "PROMPT"  # Name of the column containing the actual prompts
-MAX_DELAY = 30  # Maximum delay between API calls in seconds
+MAX_DELAY = 60  # Maximum delay between API calls in seconds
 JSON_OBJECT = False  # Enable JSON output mode
-TEMPERATURE = 0.2 if JSON_OBJECT else 1.0  # Adjust temperature based on JSON mode
+# TEMPERATURE = 0.2 if JSON_OBJECT else 1.0  # Adjust temperature based on JSON mode
+TEMPERATURE = 0.2
 
 # Additional columns to include in results
-ADDITIONAL_COLUMNS = "worksheet_name	worksheet_purpose	PROMPT".split()
+ADDITIONAL_COLUMNS = "PART_NO	PART_TITLE	CHAPTERS_DATA	CHAPTER_NO	PROMPT".split()
 
 # Time-stamped output directory
 TIME_STAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -80,14 +86,23 @@ def setup_gemini_api():
     ]
 
     try:
+        # Test authentication with a lightweight model (no system instruction)
+        test_model = genai.GenerativeModel(
+            model_name=GEMINI_MODEL,
+            generation_config={"temperature": 1, "max_output_tokens": 10},
+            safety_settings=safety_settings,
+        )
+        test_model.generate_content("Hello")
+        logging.info("Gemini API authentication successful.")
+
+        # Create the actual model with system instruction for processing
         model = genai.GenerativeModel(
             model_name=GEMINI_MODEL,
             generation_config=generation_config,
             safety_settings=safety_settings,
+            system_instruction=system_prompt,
         )
-        # Test the model with a simple prompt
-        model.generate_content("Hello")
-        logging.info("Gemini API authentication and model setup successful.")
+        logging.info("Model setup complete.")
     except Exception as e:
         logging.error(f"An error occurred while setting up the Gemini API: {str(e)}")
         sys.exit(1)

@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 # --- CONFIGURATION ---
-MAIN_SCRIPT_NAME = "GAMMA_gemini-api-template.py"
+MAIN_SCRIPT_NAME = "DELTA_gemini-api-template.py"
 RETRY_JOB_FILE = Path("RETRY_INPUT.pkl")
 PROMPT_ID_COLUMN = "PROMPT_ID"
 MERGED_FILENAME_SUFFIX = ".merged.pkl"
