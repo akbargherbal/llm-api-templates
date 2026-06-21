@@ -4,24 +4,20 @@ import time
 import logging
 from datetime import datetime
 
-import openai
-from openai import OpenAI
+from anthropic import Anthropic
 import pandas as pd
 import regex as re
 
-from system_prompt import SYSTEM_PROMPT
-
 # User-defined constants
-
-GPT4_MODEL = "deepseek-reasoner"
-MAX_TOKENS = 8000
+SYSTEM_PROMPT = "You are a helpful assistant and a web development expert."
+CLAUDE_MODEL = "claude-sonnet-4-5-20250929"
+MAX_TOKENS = 32_000
 PROMPT_INDEX_COLUMN = "PROMPT_ID"  # Name of the column containing prompt indices
 PROMPT_COLUMN = "PROMPT"  # Name of the column containing the actual prompts
-MAX_DELAY = 45  # Maximum delay between API calls in seconds
+MAX_DELAY = 30  # Maximum delay between API calls in seconds
 
 # Additional columns to include in results
-# ADDITIONAL_COLUMNS = "CH_TITLE	CH_NO	CH_TEXT		TYPE".split()
-ADDITIONAL_COLUMNS = "LANG	category	title	PROMPT".split()
+ADDITIONAL_COLUMNS = ["TUTORIAL_PATH"]
 
 # Time-stamped output directory
 TIME_STAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -43,48 +39,43 @@ logging.basicConfig(
 )
 
 
-def setup_openai_api():
-    """Set up the OpenAI API key."""
+def setup_anthropic_api():
+    """Set up the Anthropic API key."""
     logging.info(
-        "OpenAI API key not found in environment variables. Please enter it now."
+        "Anthropic API key not found in environment variables. Please enter it now."
     )
-    print("OpenAI API key not found in environment variables. Please enter it now.")
-    api_key = input("Paste your OpenAI API key: ").strip()
+    print("Anthropic API key not found in environment variables. Please enter it now.")
+    api_key = input("Paste your Anthropic API key: ").strip()
 
-    client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com")
+    client = Anthropic(api_key=api_key)
 
     try:
-        client.models.list()
-        logging.info("OpenAI API authentication successful.")
-    except openai.AuthenticationError:
-        logging.error("Authentication failed. Please check your API key.")
-        sys.exit(1)
+        # There's no direct method to list models, so we'll make a simple API call to test authentication
+        client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=10,
+            messages=[{"role": "user", "content": "Hello"}],
+        )
+        logging.info("Anthropic API authentication successful.")
     except Exception as e:
-        logging.error(f"An error occurred while setting up the OpenAI API: {str(e)}")
+        logging.error(f"An error occurred while setting up the Anthropic API: {str(e)}")
         sys.exit(1)
 
     return client
 
 
 def generate_response(client, prompt_text, prompt_id):
-    """Generate a response using OpenAI API based on user input."""
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": prompt_text},
-    ]
-
+    """Generate a response using Anthropic API based on user input."""
     try:
-        response = client.chat.completions.create(
-            model=GPT4_MODEL,
-            messages=messages,
-            temperature=0,
+        response = client.messages.create(
+            model=CLAUDE_MODEL,
             max_tokens=MAX_TOKENS,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0,
+            temperature=0.5,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": prompt_text}],
         )
         prefix = str(prompt_id).zfill(4)
-        result_content = response.choices[0].message.content
+        result_content = response.content[0].text
         result_file_name = re.sub(r"\W+", "_", "result").lower()
         result_file_name = f"{prefix}_{result_file_name}.txt"
         with open(
@@ -185,7 +176,7 @@ def main():
         path_to_prompts = input(
             "Enter the path to the PKL file containing prompts: "
         ).strip()
-        client = setup_openai_api()
+        client = setup_anthropic_api()
         process_prompts(client, path_to_prompts)
     except Exception as e:
         logging.exception(f"An unexpected error occurred: {str(e)}")
